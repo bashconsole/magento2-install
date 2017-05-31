@@ -218,8 +218,6 @@ if [ ! -f "$MAGENTO_ROOT/composer.json" ]; then
 
         $INSTALL_COMMAND
     
-#exit;
-
 	mkdir $MAGENTO_ROOT/tmp
 	cp -R $MAGENTO_ROOT/app/ $MAGENTO_ROOT/tmp/    
         cd $MAGENTO_ROOT/app/
@@ -230,6 +228,9 @@ if [ ! -f "$MAGENTO_ROOT/composer.json" ]; then
         cd $CDIR
         cp -R $MAGENTO_ROOT/tmp/app/etc $MAGENTO_ROOT/app/
         cp $MAGENTO_ROOT/tmp/app/.htaccess $MAGENTO_ROOT/app/.htaccess
+        
+        #uploading database
+        mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_DB_HOST $MYSQL_DATABASE  < $MAGENTO_ROOT/app/ExternalFiles/*.sql
         
         exit;
         
