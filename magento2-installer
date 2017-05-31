@@ -239,7 +239,7 @@ eval "cat <<EOF
 $(<template.txt)
 EOF
 " 2> /dev/null > /etc/apache2/sites-available/${M2SETUP_DOMAIN}.conf
-ln -s /etc/apache2/sites-enabled/${M2SETUP_DOMAIN} /etc/apache2/sites-available/${M2SETUP_DOMAIN}.conf
+ln -s /etc/apache2/sites-available/${M2SETUP_DOMAIN}.conf /etc/apache2/sites-enabled/${M2SETUP_DOMAIN}
 /etc/init.d/apache2 restart
 
     else
