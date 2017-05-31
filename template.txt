@@ -1,0 +1,23 @@
+<VirtualHost *:80>
+	ServerAdmin webmaster@localhost
+
+	DocumentRoot ${MAGENTO_ROOT}
+	ServerName ${M2SETUP_DOMAIN}
+	ServerAlias www.${M2SETUP_DOMAIN}
+	
+	<Directory ${MAGENTO_ROOT}>
+		Options Indexes FollowSymLinks MultiViews
+		AllowOverride All
+		Order allow,deny
+		allow from all
+	</Directory>
+
+	ErrorLog /var/log/apache2/${M2SETUP_DOMAIN}-error.log
+
+	# Possible values include: debug, info, notice, warn, error, crit,
+	# alert, emerg.
+	LogLevel warn
+
+	CustomLog /var/log/apache2/${M2SETUP_DOMAIN}-access.log combined
+
+</VirtualHost>

@@ -1,38 +1,9 @@
 #!/bin/bash
 
-MAGENTO_ROOT=/var/www/html!!!
-
-M2SETUP_INSTALL_DB=true
-M2SETUP_BASE_URL=http://domain.name/!!!
-M2SETUP_BACKEND_FRONTNAME=admin
-M2SETUP_ADMIN_FIRSTNAME=Admin
-M2SETUP_ADMIN_LASTNAME=User
-M2SETUP_ADMIN_EMAIL=dummy@gmail.com!!!
-M2SETUP_ADMIN_USER=admin_user!!!
-M2SETUP_ADMIN_PASSWORD=admin_password!!!
-M2SETUP_VERSION=2.1.*
-M2SETUP_USE_SAMPLE_DATA=true
-
-MYSQL_ROOT_PASSWORD=root_password!!!
-MYSQL_DATABASE=database_name!!!
-MYSQL_USER=database_user!!!
-MYSQL_PASSWORD=database_password!!!
-
-MAGENTO_RUN_MODE=developer
-PHP_MEMORY_LIMIT=2048M
-PHP_ENABLE_XDEBUG=false
-UPDATE_UID_GID=true
-DEBUG=false
-ENABLE_SENDMAIL=true
-
-COMPOSER_GITHUB_TOKEN=4169255d3cdfe7db75c8357cad02f44c40c02878
-
-COMPOSER_MAGENTO_USERNAME=bdde9349ff97bc7c026991c5f0e78404
-COMPOSER_MAGENTO_PASSWORD=77a02b9b5dff66694c8f492507f5dc3f
-
-
+. config.env
 
 AUTH_JSON_FILE="/root/.composer/auth.json"
+CDIR=$(pwd)
 
 [ "$DEBUG" = "true" ] && set -x
 
@@ -42,10 +13,12 @@ echo "Magento 2 install sript"
 echo
 
 MAGENTO_ROOT=${MAGENTO_ROOT:-./}
+#M2SETUP_DOMAIN=${M2SETUP_DOMAIN}
 
-echo MAGENTO_ROOT=${MAGENTO_ROOT}
-echo M2SETUP_INSTALL_DB=$M2SETUP_INSTALL_DB
+echo MAGENTO_ROOT=$MAGENTO_ROOT
+echo M2SETUP_DOMAIN=$M2SETUP_DOMAIN
 echo M2SETUP_BASE_URL=$M2SETUP_BASE_URL
+echo M2SETUP_INSTALL_DB=$M2SETUP_INSTALL_DB
 echo M2SETUP_BACKEND_FRONTNAME=$M2SETUP_BACKEND_FRONTNAME
 echo M2SETUP_ADMIN_FIRSTNAME=$M2SETUP_ADMIN_FIRSTNAME
 echo M2SETUP_ADMIN_LASTNAME=$M2SETUP_ADMIN_LASTNAME
@@ -54,11 +27,12 @@ echo M2SETUP_ADMIN_USER=$M2SETUP_ADMIN_USER
 echo M2SETUP_ADMIN_PASSWORD=$M2SETUP_ADMIN_PASSWORD
 echo M2SETUP_VERSION=$M2SETUP_VERSION
 echo M2SETUP_USE_SAMPLE_DATA=$M2SETUP_USE_SAMPLE_DATA
-
+echo MYSQL_DB_HOST=$MYSQL_DB_HOST
 echo MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD
 echo MYSQL_DATABASE=$MYSQL_DATABASE
 echo MYSQL_USER=$MYSQL_USER
 echo MYSQL_PASSWORD=$MYSQL_PASSWORD
+echo REPO_URL=$REPO_URL
 
 while true; do
     read -p "Do you wish to continue? (y/N)" yn
@@ -223,7 +197,7 @@ if [ ! -f "$MAGENTO_ROOT/composer.json" ]; then
         echo "Install Magento"
 
         INSTALL_COMMAND="$MAGENTO_COMMAND setup:install \
-            --db-host=127.0.0.1 \
+            --db-host=$MYSQL_DB_HOST \
             --db-name=$MYSQL_DATABASE \
             --db-user=$MYSQL_USER \
             --db-password=$MYSQL_PASSWORD \
@@ -243,8 +217,31 @@ if [ ! -f "$MAGENTO_ROOT/composer.json" ]; then
         fi
 
         $INSTALL_COMMAND
+    
+#exit;
+
+	mkdir $MAGENTO_ROOT/tmp
+	cp -R $MAGENTO_ROOT/app/ $MAGENTO_ROOT/tmp/    
+        cd $MAGENTO_ROOT/app/
+        git init
+        git remote add origin $REPO_URL
+        git clean -d -fx
+        git pull origin master
+        cd $CDIR
+        cp -R $MAGENTO_ROOT/tmp/app/etc $MAGENTO_ROOT/app/
+        cp $MAGENTO_ROOT/tmp/app/.htaccess $MAGENTO_ROOT/app/.htaccess
+        
+        exit;
+        
         $MAGENTO_COMMAND index:reindex
         $MAGENTO_COMMAND setup:static-content:deploy
+
+eval "cat <<EOF
+$(<template.txt)
+EOF
+" 2> /dev/null > /etc/apache2/sites_available/${M2SETUP_DOMAIN}.conf
+ln -s /etc/apache2/sites_enabled/${M2SETUP_DOMAIN} /etc/apache2/sites_available/${M2SETUP_DOMAIN}.conf
+/etc/init.d/apache2 restart
 
     else
         echo "Skipping DB installation"
