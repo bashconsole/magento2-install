@@ -1,0 +1,22 @@
+#!/bin/bash
+
+. config.env
+
+MAGENTO_COMMAND="$MAGENTO_ROOT/bin/magento"
+chmod +x $MAGENTO_COMMAND
+
+        echo "Setup Magento"
+
+        INSTALL_COMMAND="$MAGENTO_COMMAND setup:config:set \
+            --db-host=$MYSQL_DB_HOST \
+            --db-name=$MYSQL_DATABASE \
+            --db-user=$MYSQL_USER \
+            --db-password=$MYSQL_PASSWORD"
+
+        $INSTALL_COMMAND
+
+    composer --working-dir=$MAGENTO_ROOT install
+#update magento base url from environment variable
+    $MAGENTO_COMMAND setup:store-config:set --base-url=$M2SETUP_BASE_URL
+    $MAGENTO_COMMAND setup:store-config:set --base-url-secure="https://${M2SETUP_BASE_URL#http://}"
+    $MAGENTO_COMMAND cache:flush

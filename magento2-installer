@@ -209,7 +209,6 @@ if [ ! -f "$MAGENTO_ROOT/composer.json" ]; then
             --admin-user=$M2SETUP_ADMIN_USER \
             --admin-password=$M2SETUP_ADMIN_PASSWORD"
 
-
         if [ "$M2SETUP_USE_SAMPLE_DATA" = "true" ]; then
             $MAGENTO_COMMAND sampledata:deploy
             composer --working-dir=$MAGENTO_ROOT update
@@ -218,22 +217,29 @@ if [ ! -f "$MAGENTO_ROOT/composer.json" ]; then
 
         $INSTALL_COMMAND
 
-	mkdir $MAGENTO_ROOT/tmp
-	cp -R $MAGENTO_ROOT/app/ $MAGENTO_ROOT/tmp/    
-        cd $MAGENTO_ROOT/app/
+    if [ ! -z "$REPO_URL" ]; then
+        cd $MAGENTO_ROOT/
         git init
         git remote add origin $REPO_URL
+        mkdir -p /tmp/boomerang/etc && cp app/etc/env.php /tmp/boomerang/etc/ && cp app/etc/config.php /tmp/boomerang/etc/
+        install -D $MAGENTO_ROOT/app/etc/env.php /tmp/boomerang/etc/env.php
+        install -D $MAGENTO_ROOT/app/etc/config.php /tmp/boomerang/etc/config.php
         git clean -d -fx
         git pull origin master
-        cd $CDIR
-        cp -R $MAGENTO_ROOT/tmp/app/etc $MAGENTO_ROOT/app/
-        cp $MAGENTO_ROOT/tmp/app/.htaccess $MAGENTO_ROOT/app/.htaccess
-
+        install -D /tmp/boomerang/etc/env.php $MAGENTO_ROOT/app/etc/env.php
+        install -D /tmp/boomerang/etc/config.php $MAGENTO_ROOT/app/etc/config.php
+        composer --working-dir=$MAGENTO_ROOT update
+        chmod +x "$MAGENTO_ROOT/bin/magento"
+        $MAGENTO_COMMAND cache:clean
+        $MAGENTO_COMMAND cache:flush
+        $MAGENTO_COMMAND setup:upgrade
+        $MAGENTO_COMMAND setup:di:compile
         #uploading database
         mysql -u$MYSQL_USER -p$MYSQL_PASSWORD -h$MYSQL_DB_HOST $MYSQL_DATABASE  < $MAGENTO_ROOT/app/ExternalFiles/*.sql
+    fi
 
-        $MAGENTO_COMMAND index:reindex
-        $MAGENTO_COMMAND setup:static-content:deploy
+    $MAGENTO_COMMAND index:reindex
+    $MAGENTO_COMMAND setup:static-content:deploy
 
 eval "cat <<EOF
 $(<template.txt)
