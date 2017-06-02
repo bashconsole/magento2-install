@@ -244,7 +244,7 @@ if [ ! -f "$MAGENTO_ROOT/composer.json" ]; then
 eval "cat <<EOF
 $(<template.txt)
 EOF
-" 2> /dev/null > /etc/apache2/sites-available/${M2SETUP_DOMAIN}.conf
+" 2> /dev/null > /etc/apache2/sites-available/${M2SETUP_HOSTNAME}.conf
 
     else
         echo "Skipping DB installation"
@@ -285,7 +285,7 @@ find $MAGENTO_ROOT/pub -type f -exec chmod 664 {} \;
 find $MAGENTO_ROOT/pub -type d -exec chmod 775 {} \;
 find $MAGENTO_ROOT/var/generation -type d -exec chmod g+s {} \;
 
-ln -s /etc/apache2/sites-available/${M2SETUP_DOMAIN}.conf /etc/apache2/sites-enabled/${M2SETUP_DOMAIN}
+a2ensite ${M2SETUP_HOSTNAME}.conf
 /etc/init.d/apache2 restart
 
 echo "Installation complete"
