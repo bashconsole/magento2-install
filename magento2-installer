@@ -241,6 +241,7 @@ if [ ! -f "$MAGENTO_ROOT/composer.json" ]; then
     $MAGENTO_COMMAND index:reindex
     $MAGENTO_COMMAND setup:static-content:deploy
 
+cd $CDIR
 eval "cat <<EOF
 $(<template.txt)
 EOF
