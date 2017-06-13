@@ -230,8 +230,6 @@ if [ ! -f "$MAGENTO_ROOT/composer.json" ]; then
         install -D /tmp/boomerang/etc/config.php $MAGENTO_ROOT/app/etc/config.php
         composer --working-dir=$MAGENTO_ROOT update
         chmod +x "$MAGENTO_ROOT/bin/magento"
-        $MAGENTO_COMMAND cache:clean
-        $MAGENTO_COMMAND cache:flush
         $MAGENTO_COMMAND setup:upgrade
         $MAGENTO_COMMAND setup:di:compile
         #uploading database
